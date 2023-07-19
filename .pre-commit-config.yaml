@@ -9,7 +9,6 @@ repos:
     -   id: check-docstring-first
     -   id: check-json
     -   id: pretty-format-json
-    -   id: double-quote-string-fixer
 -   repo: https://github.com/psf/black
     rev: 23.7.0
     hooks:
