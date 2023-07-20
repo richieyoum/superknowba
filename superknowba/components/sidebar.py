@@ -21,7 +21,7 @@ def sidebar():
 
             # accept single or multiple files
             uploaded_file = st.file_uploader(
-                "Supported type: pdf, txt, csv, html, docx, md file",
+                "Supported type: pdf",
                 type=[
                     "pdf"
                 ],  # TODO: Add support for "txt", "csv", "html", "docx", "md"
