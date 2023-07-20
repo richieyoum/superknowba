@@ -13,7 +13,7 @@ st.set_page_config(page_title="SuperKnowBa", page_icon="🌌", layout="wide")
 st.header("SuperKnowBa 🌌")
 
 # list of existing databases
-st.session_state["database_list"] = os.listdir("vectorstores/")
+st.session_state["database_list"] = os.listdir("superknowba/vectorstores")
 
 # load sidebar component
 sidebar()
