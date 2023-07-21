@@ -55,12 +55,16 @@ def sidebar():
 
             submit = st.form_submit_button("Add and re-index")
 
-        if submit:
+        if submit and not st.session_state["uploaded_files"]:
+            st.warning("Files missing!")
+
+        if submit and st.session_state["uploaded_files"]:
+            # user tries to create a DB
             if st.session_state["create_dbname"]:
                 # can't do both creation and selection
                 if st.session_state["db_option"] != "N/A":
                     st.warning("You can't create and select db at the same time!")
-                # can't create a new db with same name
+                # can't use existing name for the new DB
                 if (
                     st.session_state["create_dbname"]
                     in st.session_state["database_list"]
@@ -73,19 +77,19 @@ def sidebar():
                     st.session_state["db_option"] = st.session_state["create_dbname"]
                     on_upload_submit()
                     st.warning(
-                        f"Created and added files to {st.session_state['db_option']} successfully."
+                        f"Created and added {len(st.session_state['uploaded_files'])} file(s) to {st.session_state['db_option']} successfully."
                     )
-
-            if st.session_state["db_option"] == "N/A":
-                # can't skip both creation and selection
-                if not st.session_state["create_dbname"]:
-                    st.warning(
-                        "You must create a database or select a database to upload data to"
-                    )
-                else:
+            # user tries to select a DB
+            else:
+                if st.session_state["db_option"] != "N/A":
                     on_upload_submit()
                     st.warning(
-                        f"Added files to {st.session_state['db_option']} successfully."
+                        f"Added {len(st.session_state['uploaded_files'])} file(s) to {st.session_state['db_option']} successfully."
+                    )
+                # user does neither DB creation or selection
+                else:
+                    st.warning(
+                        "You must create a database or select a database to upload data to"
                     )
 
             # update database_list states with the new db
