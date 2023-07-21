@@ -1,3 +1,5 @@
 .env
 __pycache__/
 .mypy_cache/
+superknowba/vectorstores/*
+!superknowba/vectorstores/__init__.py
