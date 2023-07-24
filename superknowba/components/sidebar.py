@@ -21,10 +21,26 @@ def sidebar():
             "OpenAI API Key", placeholder="Paste your OpenAI API Key", type="password"
         )
 
+        #### talking with a DB ####
+        st.subheader("Talk with your DB")
+        with st.form("data_talk_form"):
+            st.session_state["db_talk_option"] = st.selectbox(
+                "Choose the DB to talk to",
+                st.session_state["database_list"],
+                help="Currently, we only support single-DB at a time. Multi-DB support coming soon!",
+            )
+            talk_option_submit = st.form_submit_button("Apply")
+
+        if talk_option_submit:
+            if not st.session_state["database_list"]:
+                st.warning(
+                    "Please create a database first, then select a database to chat with. Otherwise, you're simply chatting with default ChatGPT"
+                )
+
         #### uploading data to DB ####
         st.subheader("Upload your data")
 
-        with st.form("data_form", clear_on_submit=True):
+        with st.form("data_upload_form", clear_on_submit=True):
             # files to upload
             st.markdown("### Files")
 
@@ -48,21 +64,22 @@ def sidebar():
                 "Create a new database and store data",
                 placeholder="Name of your new DB",
             )
-            st.session_state["db_option"] = st.selectbox(
+            st.session_state["db_upload_option"] = st.selectbox(
                 "Or, select existing database to save data",
                 ["N/A"] + st.session_state["database_list"],
+                help="If you don't see your database, try refreshing and check again.",
             )
 
-            submit = st.form_submit_button("Add and re-index")
+            data_upload_submit = st.form_submit_button("Add and re-index")
 
-        if submit and not st.session_state["uploaded_files"]:
+        if data_upload_submit and not st.session_state["uploaded_files"]:
             st.warning("Files missing!")
 
-        if submit and st.session_state["uploaded_files"]:
+        if data_upload_submit and st.session_state["uploaded_files"]:
             # user tries to create a DB
             if st.session_state["create_dbname"]:
                 # can't do both creation and selection
-                if st.session_state["db_option"] != "N/A":
+                if st.session_state["db_upload_option"] != "N/A":
                     st.warning("You can't create and select db at the same time!")
                 # can't use existing name for the new DB
                 if (
@@ -74,17 +91,19 @@ def sidebar():
                     )
                 else:
                     # used by on_upload_submit for saving vectorstore
-                    st.session_state["db_option"] = st.session_state["create_dbname"]
+                    st.session_state["db_upload_option"] = st.session_state[
+                        "create_dbname"
+                    ]
                     on_upload_submit()
                     st.warning(
-                        f"Created and added {len(st.session_state['uploaded_files'])} file(s) to {st.session_state['db_option']} successfully."
+                        f"Created and added {len(st.session_state['uploaded_files'])} file(s) to {st.session_state['db_upload_option']} successfully."
                     )
             # user tries to select a DB
             else:
-                if st.session_state["db_option"] != "N/A":
+                if st.session_state["db_upload_option"] != "N/A":
                     on_upload_submit()
                     st.warning(
-                        f"Added {len(st.session_state['uploaded_files'])} file(s) to {st.session_state['db_option']} successfully."
+                        f"Added {len(st.session_state['uploaded_files'])} file(s) to {st.session_state['db_upload_option']} successfully."
                     )
                 # user does neither DB creation or selection
                 else:
@@ -96,7 +115,7 @@ def sidebar():
             st.session_state["database_list"] = os.listdir("superknowba/vectorstores")
 
             # clear form states to default
-            st.session_state["db_option"] = "N/A"
+            st.session_state["db_upload_option"] = "N/A"
             st.session_state["uploaded_files"] = None
             st.session_state["create_dbname"] = None
 
@@ -134,7 +153,7 @@ def on_upload_submit():
             chunks = text_splitter.split_documents(file.docs)
             try:
                 db_path = os.path.join(
-                    "superknowba/vectorstores", st.session_state["db_option"]
+                    "superknowba/vectorstores", st.session_state["db_upload_option"]
                 )
                 db = FAISS.load_local(db_path, embeddings)
                 db.add_documents(chunks)
