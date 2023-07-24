@@ -1,8 +1,11 @@
 import streamlit as st
 from superknowba.core.document import read_file
+from superknowba.core.qa import get_qa_retrieval_chain
 from langchain.embeddings import OpenAIEmbeddings
+from langchain.chat_models import ChatOpenAI
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import FAISS
+from langchain.vectorstores.base import VectorStore
 import logging
 import os
 
@@ -10,7 +13,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-def sidebar():
+def sidebar() -> None:
     with st.sidebar:
         st.header("SuperKnowBa 🌌")
         st.subheader("General Settings")
@@ -32,7 +35,18 @@ def sidebar():
             talk_option_submit = st.form_submit_button("Apply")
 
         if talk_option_submit:
-            if not st.session_state["database_list"]:
+            # when user selects an option for db to chat with, update vectordb in use
+            if st.session_state["db_talk_option"]:
+                st.session_state["vectordb"] = get_db_from_chat_selection()
+                llm = ChatOpenAI(
+                    model=st.session_state["openai_model"],
+                    temperature=0.5,
+                    streaming=True,
+                )
+                st.session_state["qa_chain"] = get_qa_retrieval_chain(
+                    llm, st.session_state["vectordb"]
+                )
+            else:
                 st.warning(
                     "Please create a database first, then select a database to chat with. Otherwise, you're simply chatting with default ChatGPT"
                 )
@@ -90,18 +104,18 @@ def sidebar():
                         "Database name already exists! Please choose another name."
                     )
                 else:
-                    # used by on_upload_submit for saving vectorstore
+                    # used by save_files_to_db for saving vectorstore
                     st.session_state["db_upload_option"] = st.session_state[
                         "create_dbname"
                     ]
-                    on_upload_submit()
+                    save_files_to_db()
                     st.warning(
                         f"Created and added {len(st.session_state['uploaded_files'])} file(s) to {st.session_state['db_upload_option']} successfully."
                     )
             # user tries to select a DB
             else:
                 if st.session_state["db_upload_option"] != "N/A":
-                    on_upload_submit()
+                    save_files_to_db()
                     st.warning(
                         f"Added {len(st.session_state['uploaded_files'])} file(s) to {st.session_state['db_upload_option']} successfully."
                     )
@@ -144,17 +158,24 @@ def sidebar():
                 link.markdown("[Github](https://github.com/richieyoum)")
 
 
-def on_upload_submit():
+def get_db_from_chat_selection() -> VectorStore:
+    db_path = os.path.join(
+        "superknowba/vectorstores", st.session_state["db_talk_option"]
+    )
+    return FAISS.load_local(db_path, OpenAIEmbeddings())
+
+
+def save_files_to_db() -> None:
     text_splitter = RecursiveCharacterTextSplitter()
     if st.session_state["uploaded_files"]:
         embeddings = OpenAIEmbeddings()
         for _file in st.session_state["uploaded_files"]:
             file = read_file(_file)
             chunks = text_splitter.split_documents(file.docs)
+            db_path = os.path.join(
+                "superknowba/vectorstores", st.session_state["db_upload_option"]
+            )
             try:
-                db_path = os.path.join(
-                    "superknowba/vectorstores", st.session_state["db_upload_option"]
-                )
                 db = FAISS.load_local(db_path, embeddings)
                 db.add_documents(chunks)
                 db.save_local(db_path)
