@@ -12,6 +12,10 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 st.set_page_config(page_title="SuperKnowBa", page_icon="🌌", layout="wide")
 st.header("SuperKnowBa 🌌")
 
+# initialize vectorstore directory
+if not os.path.exists("superknowba/vectorstores"):
+    os.mkdir("superknowba/vectorstores")
+
 # list of existing databases
 st.session_state["database_list"] = os.listdir("superknowba/vectorstores")
 
