@@ -133,21 +133,16 @@ def on_upload_submit():
             file = read_file(_file)
             chunks = text_splitter.split_documents(file.docs)
             try:
-                db = FAISS.load_local(st.session_state["db_option"], embeddings)
-                db.add_documents(chunks)
-                db.save_local(
-                    os.path.join(
-                        "superknowba/vectorstores", st.session_state["db_option"]
-                    )
+                db_path = os.path.join(
+                    "superknowba/vectorstores", st.session_state["db_option"]
                 )
+                db = FAISS.load_local(db_path, embeddings)
+                db.add_documents(chunks)
+                db.save_local(db_path)
             except Exception as e:
                 logger.error(f"Error loading FAISS index: {e}")
                 logger.error("Initializing new db instead")
                 db = FAISS.from_documents(documents=chunks, embedding=embeddings)
-                db.save_local(
-                    os.path.join(
-                        "superknowba/vectorstores", st.session_state["db_option"]
-                    )
-                )
+                db.save_local(db_path)
     else:
         st.warning("No file to upload or file format is incompatible!")
