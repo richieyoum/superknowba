@@ -14,9 +14,14 @@ from langchain.chat_models import ChatOpenAI
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import FAISS
 from langchain.vectorstores.base import VectorStore
+import openai
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
+
+if "openai_api_key" in st.session_state:
+    openai.api_key = st.session_state["openai_api_key"]
+    os.environ["OPENAI_API_KEY"] = st.session_state["openai_api_key"]
 
 
 def sidebar() -> None:
@@ -26,10 +31,19 @@ def sidebar() -> None:
 
         #### general settings ####
         # set openai key
-        st.session_state["openai_api_key"] = st.text_input(
-            "OpenAI API Key", placeholder="Paste your OpenAI API Key", type="password"
-        )
-
+        if os.environ["OPENAI_API_KEY"]:
+            st.session_state["openai_api_key"] = st.text_input(
+                "OpenAI API Key",
+                placeholder="Paste your OpenAI API Key",
+                type="password",
+                value=os.environ["OPENAI_API_KEY"],
+            )
+        else:
+            st.session_state["openai_api_key"] = st.text_input(
+                "OpenAI API Key",
+                placeholder="Paste your OpenAI API Key",
+                type="password",
+            )
         #### talking with a DB ####
         st.subheader("Talk with your DB")
         with st.form("data_talk_form"):
@@ -148,6 +162,18 @@ def sidebar() -> None:
 
         # footer
         contact()
+
+    # remove default top and bottom padding
+    st.markdown(
+        """
+        <style>
+            .css-1544g2n {
+            padding: 1.5rem 1rem 1.5rem;
+            }
+        </style>
+    """,
+        unsafe_allow_html=True,
+    )
 
 
 def display_current_db(container: DeltaGenerator) -> None:

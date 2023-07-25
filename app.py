@@ -6,7 +6,8 @@ from superknowba.components import chat, sidebar
 
 # load default key, if it exists in .env file
 load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
+openai.api_key = os.getenv("OPENAI_API_KEY", "")
+os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY", "")
 
 # set titles
 st.set_page_config(page_title="SuperKnowBa", page_icon="🌌", layout="wide")
@@ -23,8 +24,9 @@ st.session_state["database_list"] = os.listdir("superknowba/vectorstores")
 sidebar()
 
 # if user supplied openai key on sidebar UI, overwrite the default key
-if st.session_state["openai_api_key"]:
+if "openai_api_key" in st.session_state:
     openai.api_key = st.session_state["openai_api_key"]
+    os.environ["OPENAI_API_KEY"] = st.session_state["openai_api_key"]
 
 # warn user if openai key not available
 if not openai.api_key:
