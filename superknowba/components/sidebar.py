@@ -1,5 +1,11 @@
+import logging
+import os
+from io import BytesIO
+from typing import List
+import time
 import streamlit as st
 from streamlit.components.v1 import html
+from streamlit.delta_generator import DeltaGenerator
 from superknowba.components.contact import contact
 from superknowba.core.document import read_file
 from superknowba.core.qa import get_qa_retrieval_chain
@@ -8,8 +14,6 @@ from langchain.chat_models import ChatOpenAI
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import FAISS
 from langchain.vectorstores.base import VectorStore
-import logging
-import os
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -117,16 +121,16 @@ def sidebar() -> None:
                     st.session_state["db_upload_option"] = st.session_state[
                         "create_dbname"
                     ]
-                    save_files_to_db()
-                    st.warning(
-                        f"Created and added {len(st.session_state['uploaded_files'])} file(s) to {st.session_state['db_upload_option']} successfully."
+                    save_files_to_db(
+                        files=st.session_state["uploaded_files"],
+                        db_name=st.session_state["db_upload_option"],
                     )
             # user tries to select a DB
             else:
                 if st.session_state["db_upload_option"] != "N/A":
-                    save_files_to_db()
-                    st.warning(
-                        f"Added {len(st.session_state['uploaded_files'])} file(s) to {st.session_state['db_upload_option']} successfully."
+                    save_files_to_db(
+                        files=st.session_state["uploaded_files"],
+                        db_name=st.session_state["db_upload_option"],
                     )
                 # user does neither DB creation or selection
                 else:
@@ -146,7 +150,7 @@ def sidebar() -> None:
         contact()
 
 
-def display_current_db(container: st.container) -> None:
+def display_current_db(container: DeltaGenerator) -> None:
     current_db = (
         "ChatGPT"
         if "db_talk_option" not in st.session_state
@@ -160,16 +164,14 @@ def get_vectordb(db_name: str) -> VectorStore:
     return FAISS.load_local(db_path, OpenAIEmbeddings())
 
 
-def save_files_to_db() -> None:
+def save_files_to_db(files: List[BytesIO], db_name: str) -> None:
     text_splitter = RecursiveCharacterTextSplitter()
-    if st.session_state["uploaded_files"]:
+    if files:
         embeddings = OpenAIEmbeddings()
-        for _file in st.session_state["uploaded_files"]:
+        for _file in files:
             file = read_file(_file)
             chunks = text_splitter.split_documents(file.docs)
-            db_path = os.path.join(
-                "superknowba/vectorstores", st.session_state["db_upload_option"]
-            )
+            db_path = os.path.join("superknowba/vectorstores", db_name)
             try:
                 db = FAISS.load_local(db_path, embeddings)
                 db.add_documents(chunks)
@@ -180,6 +182,10 @@ def save_files_to_db() -> None:
                 db = FAISS.from_documents(documents=chunks, embedding=embeddings)
                 db.save_local(db_path)
             finally:
+                st.warning(
+                    f"Added {len(files)} file(s) to {db_name} successfully. Reloading page..."
+                )
+                time.sleep(2)
                 reload_page()
     else:
         st.warning("No file to upload or file format is incompatible!")
