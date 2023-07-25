@@ -29,23 +29,20 @@ def sidebar() -> None:
         st.subheader("Talk with your DB")
         with st.form("data_talk_form"):
             selected_db_div = st.empty()
-            current_db = (
-                "N/A"
-                if "db_talk_option" not in st.session_state
-                else st.session_state["db_talk_option"]
-            )
-            selected_db_div.write(f"Current DB: **{current_db}**")
+            display_current_db(selected_db_div)
             st.session_state["db_talk_option"] = st.selectbox(
                 "Choose the DB to talk to",
-                st.session_state["database_list"],
+                ["ChatGPT"] + st.session_state["database_list"],
                 help="Currently, we only support single-DB at a time. Multi-DB support coming soon!",
             )
             talk_option_submit = st.form_submit_button("Apply")
 
         if talk_option_submit:
             # when user selects an option for db to chat with, update vectordb in use
-            if st.session_state["db_talk_option"]:
-                st.session_state["vectordb"] = get_db_from_chat_selection()
+            if st.session_state["db_talk_option"] != "ChatGPT":
+                st.session_state["vectordb"] = get_vectordb(
+                    st.session_state["db_talk_option"]
+                )
                 llm = ChatOpenAI(
                     model=st.session_state["openai_model"],
                     temperature=0.5,
@@ -54,16 +51,10 @@ def sidebar() -> None:
                 st.session_state["qa_chain"] = get_qa_retrieval_chain(
                     llm, st.session_state["vectordb"]
                 )
-                current_db = (
-                    "N/A"
-                    if "db_talk_option" not in st.session_state
-                    else st.session_state["db_talk_option"]
-                )
-                selected_db_div.write(f"Current DB: **{current_db}**")
             else:
-                st.warning(
-                    "Please create a database first, then select a database to chat with. Otherwise, you're simply chatting with default ChatGPT"
-                )
+                st.session_state["vectordb"] = None
+                st.session_state["qa_chain"] = None
+            display_current_db(selected_db_div)
 
         #### uploading data to DB ####
         st.subheader("Upload your data")
@@ -172,10 +163,17 @@ def sidebar() -> None:
                 link.markdown("[Github](https://github.com/richieyoum)")
 
 
-def get_db_from_chat_selection() -> VectorStore:
-    db_path = os.path.join(
-        "superknowba/vectorstores", st.session_state["db_talk_option"]
+def display_current_db(container: st.container) -> None:
+    current_db = (
+        "ChatGPT"
+        if "db_talk_option" not in st.session_state
+        else st.session_state["db_talk_option"]
     )
+    container.write(f"Current DB: **{current_db}**")
+
+
+def get_vectordb(db_name: str) -> VectorStore:
+    db_path = os.path.join("superknowba/vectorstores", db_name)
     return FAISS.load_local(db_path, OpenAIEmbeddings())
 
 
