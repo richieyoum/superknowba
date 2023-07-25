@@ -1,4 +1,5 @@
 import streamlit as st
+from streamlit_extras.buy_me_a_coffee import button
 
 
 def contact() -> None:
@@ -24,3 +25,5 @@ def contact() -> None:
                     unsafe_allow_html=True,
                 )
             link.markdown("[Github](https://github.com/richieyoum)")
+
+        button(username="richieyoum", floating=False, width=225)

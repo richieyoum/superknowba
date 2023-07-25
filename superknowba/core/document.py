@@ -7,6 +7,7 @@ from hashlib import md5
 from abc import abstractmethod, ABC
 import docx2txt
 from datetime import datetime
+import pandas as pd
 
 
 class File(ABC):
@@ -59,11 +60,10 @@ class PdfFile(File):
                 },
             )
             docs.append(doc)
-        file_metadata = {"uploaded at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
         return cls(
             name=file.name,
             id=md5(file.read()).hexdigest(),
-            metadata=file_metadata,
+            metadata={"uploaded at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")},
             docs=docs,
         )
 
@@ -74,11 +74,10 @@ class DocxFile(File):
         text = docx2txt.process(file)
         text = cls.preprocess(text)
         doc = Document(page_content=text.strip(), metadata={"source": file.name})
-        file_metadata = {"uploaded at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
         return cls(
             name=file.name,
             id=md5(file.read()).hexdigest(),
-            metadata=file_metadata,
+            metadata={"uploaded at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")},
             docs=[doc],
         )
 
@@ -90,12 +89,32 @@ class TxtFile(File):
         text = cls.preprocess(text)
         file.seek(0)
         doc = Document(page_content=text.strip(), metadata={"source": file.name})
-        file_metadata = {"uploaded at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
         return cls(
             name=file.name,
             id=md5(file.read()).hexdigest(),
-            metadata=file_metadata,
+            metadata={"uploaded at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")},
             docs=[doc],
+        )
+
+
+class CSVFile(File):
+    @classmethod
+    def from_bytes(cls, file: BytesIO) -> "CSVFile":
+        df = pd.read_csv(file)
+        docs = []
+        for i, row in enumerate(df.values):
+            content = "\n".join(
+                f"{str(k).strip()}: {str(v).strip()}" for k, v in zip(df.columns, row)
+            )
+            doc = Document(
+                page_content=content, metadata={"source": file.name, "row": i}
+            )
+            docs.append(doc)
+        return cls(
+            name=file.name,
+            id=md5(file.read()).hexdigest(),
+            metadata={"uploaded at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")},
+            docs=docs,
         )
 
 
@@ -107,5 +126,7 @@ def read_file(file: BytesIO) -> File:
         return PdfFile.from_bytes(file)
     elif file.name.lower().endswith(".txt"):
         return TxtFile.from_bytes(file)
+    elif file.name.lower().endswith(".csv"):
+        return CSVFile.from_bytes(file)
     else:
         raise NotImplementedError(f"File type {file.name.split('.')[-1]} not supported")

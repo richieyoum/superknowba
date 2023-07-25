@@ -1,5 +1,6 @@
 import streamlit as st
 from streamlit.components.v1 import html
+from superknowba.components.contact import contact
 from superknowba.core.document import read_file
 from superknowba.core.qa import get_qa_retrieval_chain
 from langchain.embeddings import OpenAIEmbeddings
@@ -67,8 +68,11 @@ def sidebar() -> None:
             st.session_state["uploaded_files"] = st.file_uploader(
                 "Supported type: pdf",
                 type=[
-                    "pdf"
-                ],  # TODO: Add support for "txt", "csv", "html", "docx", "md"
+                    "pdf",
+                    "txt",
+                    "csv",
+                    "docx",
+                ],  # TODO: Add support for "html", "md"
                 accept_multiple_files=True,
                 help="Only structured (not scanned) pdfs are supported at this time",
             )
@@ -139,28 +143,7 @@ def sidebar() -> None:
             st.session_state["create_dbname"] = None
 
         # footer
-        st.subheader("Keep in touch!")
-        with st.container():
-            with st.empty():
-                icon, link = st.columns([0.05, 0.95])
-                with icon:
-                    st.markdown(
-                        """
-                        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-                        <i class='fa-brands fa-linkedin fa-bounce'/>""",
-                        unsafe_allow_html=True,
-                    )
-                link.markdown("[Linkedin](https://www.linkedin.com/in/richieyoum/)")
-            with st.empty():
-                icon, link = st.columns([0.05, 0.95])
-                with icon:
-                    st.markdown(
-                        """
-                        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-                        <i class="fa-brands fa-github fa-bounce"></i>""",
-                        unsafe_allow_html=True,
-                    )
-                link.markdown("[Github](https://github.com/richieyoum)")
+        contact()
 
 
 def display_current_db(container: st.container) -> None:
