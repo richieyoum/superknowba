@@ -1,6 +1,6 @@
-# SuperKnowBa
+# SuperKnowBa 🌌
 
-<div align="center"><img src='assets/supernova.jpg' width=500></div>
+<div align="center"><img src='https://physics.aps.org/assets/36a7bcf2-38a5-4db6-a05f-c0a2ecc5903d/e51_1.png' width=500></div>
 
 Chat with your knowledge base from multiple data sources like CSV, PDF, TXT, HTML, and more.
 
