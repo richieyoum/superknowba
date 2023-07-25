@@ -14,9 +14,14 @@ from langchain.chat_models import ChatOpenAI
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import FAISS
 from langchain.vectorstores.base import VectorStore
+import openai
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
+
+if "openai_api_key" in st.session_state:
+    openai.api_key = st.session_state["openai_api_key"]
+    os.environ["OPENAI_API_KEY"] = st.session_state["openai_api_key"]
 
 
 def sidebar() -> None:
