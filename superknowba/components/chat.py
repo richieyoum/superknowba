@@ -27,7 +27,7 @@ def chat() -> None:
             full_response = ""
 
         # TODO: qachain has response['chat_history'], but can only answer items from db. use general-purpose llm agent to formulate final answer
-        if st.session_state["qa_chain"]:
+        if "qa_chain" in st.session_state and st.session_state["qa_chain"]:
             response = st.session_state["qa_chain"]({"question": prompt})
             for char in response["answer"]:
                 full_response += char
