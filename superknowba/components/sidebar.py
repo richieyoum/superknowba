@@ -149,6 +149,18 @@ def sidebar() -> None:
         # footer
         contact()
 
+    # remove default top and bottom padding
+    st.markdown(
+        """
+        <style>
+            .css-1544g2n {
+            padding: 1.5rem 1rem 1.5rem;
+            }
+        </style>
+    """,
+        unsafe_allow_html=True,
+    )
+
 
 def display_current_db(container: DeltaGenerator) -> None:
     current_db = (
