@@ -26,7 +26,6 @@ def chat() -> None:
             message_placeholder = st.empty()
             full_response = ""
 
-        # TODO: show current db (or lack thereof)
         # TODO: need to handle unselecting db and go to default chatgpt.
         # TODO: qachain has response['chat_history'], but can only answer items from db. use general-purpose llm agent to formulate final answer
         if "qa_chain" in st.session_state:

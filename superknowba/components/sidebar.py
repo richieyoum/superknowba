@@ -1,4 +1,5 @@
 import streamlit as st
+from streamlit.components.v1 import html
 from superknowba.core.document import read_file
 from superknowba.core.qa import get_qa_retrieval_chain
 from langchain.embeddings import OpenAIEmbeddings
@@ -27,6 +28,13 @@ def sidebar() -> None:
         #### talking with a DB ####
         st.subheader("Talk with your DB")
         with st.form("data_talk_form"):
+            selected_db_div = st.empty()
+            current_db = (
+                "N/A"
+                if "db_talk_option" not in st.session_state
+                else st.session_state["db_talk_option"]
+            )
+            selected_db_div.write(f"Current DB: **{current_db}**")
             st.session_state["db_talk_option"] = st.selectbox(
                 "Choose the DB to talk to",
                 st.session_state["database_list"],
@@ -46,6 +54,12 @@ def sidebar() -> None:
                 st.session_state["qa_chain"] = get_qa_retrieval_chain(
                     llm, st.session_state["vectordb"]
                 )
+                current_db = (
+                    "N/A"
+                    if "db_talk_option" not in st.session_state
+                    else st.session_state["db_talk_option"]
+                )
+                selected_db_div.write(f"Current DB: **{current_db}**")
             else:
                 st.warning(
                     "Please create a database first, then select a database to chat with. Otherwise, you're simply chatting with default ChatGPT"
@@ -69,7 +83,7 @@ def sidebar() -> None:
             )
 
             # also accepts URL for web scraping / YouTube
-            st.text_input("or, type in webpage url", placeholder="https://")
+            # st.text_input("or, type in webpage url", placeholder="https://")
 
             # db to create / choose
             st.markdown("### Database")
@@ -184,5 +198,11 @@ def save_files_to_db() -> None:
                 logger.error("Initializing new db instead")
                 db = FAISS.from_documents(documents=chunks, embedding=embeddings)
                 db.save_local(db_path)
+            finally:
+                reload_page()
     else:
         st.warning("No file to upload or file format is incompatible!")
+
+
+def reload_page() -> None:
+    html("<script>parent.window.location.reload()</script>")
