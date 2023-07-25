@@ -31,19 +31,11 @@ def sidebar() -> None:
 
         #### general settings ####
         # set openai key
-        if os.environ["OPENAI_API_KEY"]:
-            st.session_state["openai_api_key"] = st.text_input(
-                "OpenAI API Key",
-                placeholder="Paste your OpenAI API Key",
-                type="password",
-                value=os.environ["OPENAI_API_KEY"],
-            )
-        else:
-            st.session_state["openai_api_key"] = st.text_input(
-                "OpenAI API Key",
-                placeholder="Paste your OpenAI API Key",
-                type="password",
-            )
+        st.session_state["openai_api_key"] = st.text_input(
+            "OpenAI API Key",
+            placeholder="Paste your OpenAI API Key",
+            type="password",
+        )
         #### talking with a DB ####
         st.subheader("Talk with your DB")
         with st.form("data_talk_form"):
