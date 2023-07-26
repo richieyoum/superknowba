@@ -11,7 +11,7 @@ This application leverages OpenAI's ChatGPT and Meta's FAISS to fetch relevant r
 You can test SuperKnowBa demo here: https://superknowba.streamlit.app/
 ![Screenshot from 2023-07-25 12-57-39](https://github.com/richieyoum/superknowba/assets/43356500/021b3754-6423-4834-94eb-b8edee047c89)
 
-**Warning**: Any data you upload will persist in the vectorDB! **Do not upload any private information**
+**Warning**: Any data you upload in the demo will persist in the vectorDB! **Do not upload any private information**
 
 ## 🧐 How it works
 Superknowba accepts a variety of file formats, currently CSV, PDF, TXT, and DOCX.
