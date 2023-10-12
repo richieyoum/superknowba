@@ -32,7 +32,7 @@ Note, if you're chatting with a database specifically, it will only be able to a
     ```
 3. Now, you can simply run the following to get started!
     ```
-    python streamlit app.py
+    streamlit app.py
     ```
 
 ## 🛠️ Upcoming features
