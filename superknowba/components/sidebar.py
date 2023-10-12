@@ -9,6 +9,7 @@ from streamlit.delta_generator import DeltaGenerator
 from superknowba.components.contact import contact
 from superknowba.core.document import read_file
 from superknowba.core.qa import get_qa_retrieval_chain
+from superknowba.util import check_key_notnull
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.chat_models import ChatOpenAI
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -19,7 +20,7 @@ import openai
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-if "openai_api_key" in st.session_state:
+if check_key_notnull("openai_api_key"):
     openai.api_key = st.session_state["openai_api_key"]
     os.environ["OPENAI_API_KEY"] = st.session_state["openai_api_key"]
 
@@ -31,13 +32,17 @@ def sidebar() -> None:
 
         #### general settings ####
         # set openai key
-        st.session_state["openai_api_key"] = st.text_input(
+        openai_api_input = st.text_input(
             "OpenAI API Key",
+            value=os.getenv("OPENAI_API_KEY"),
             placeholder="Paste your OpenAI API Key",
             type="password",
         )
+        if openai_api_input:
+            os.environ["OPENAI_API_KEY"] = openai_api_input
+
         #### talking with a DB ####
-        st.subheader("Talk with your DB")
+        st.subheader("Context")
         with st.form("data_talk_form"):
             selected_db_div = st.empty()
             display_current_db(selected_db_div)
@@ -110,7 +115,7 @@ def sidebar() -> None:
 
         if data_upload_submit and st.session_state["uploaded_files"]:
             # user tries to create a DB
-            if st.session_state["create_dbname"]:
+            if check_key_notnull("create_dbname"):
                 # can't do both creation and selection
                 if st.session_state["db_upload_option"] != "N/A":
                     st.warning("You can't create and select db at the same time!")
@@ -169,11 +174,7 @@ def sidebar() -> None:
 
 
 def display_current_db(container: DeltaGenerator) -> None:
-    current_db = (
-        "ChatGPT"
-        if "db_talk_option" not in st.session_state
-        else st.session_state["db_talk_option"]
-    )
+    current_db = st.session_state.get("db_talk_option", "ChatGPT")
     container.write(f"Current DB: **{current_db}**")
 
 

@@ -1,10 +1,11 @@
 import streamlit as st
 import openai
+from superknowba.util import check_key_notnull
 
 
 def chat() -> None:
     # Initialize chat history, if doesn't yet exist
-    if "messages" not in st.session_state:
+    if not check_key_notnull("messages"):
         st.session_state["messages"] = [
             {"role": "assistant", "content": "How can I help you?"}
         ]
@@ -24,10 +25,10 @@ def chat() -> None:
         # Display assistant response in chat message container
         with st.chat_message("assistant"):
             message_placeholder = st.empty()
-            full_response = ""
 
+        full_response = ""
         # TODO: qachain has response['chat_history'], but can only answer items from db. use general-purpose llm agent to formulate final answer
-        if "qa_chain" in st.session_state and st.session_state["qa_chain"]:
+        if check_key_notnull("qa_chain"):
             response = st.session_state["qa_chain"]({"question": prompt})
             for char in response["answer"]:
                 full_response += char
